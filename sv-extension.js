@@ -1,94 +1,111 @@
-let keybindsActive = true; //Toggle for enabling/disabling the keybinds
+// ==UserScript==
+// @name         Sitevision Keybinds
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  Keybinds to the people!
+// @author       Alexander V @Knowit
+// @match        *://*/edit/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=sitevision.se
+// @grant        none
+// ==/UserScript==
 
-//Open/close the appropriate context menu using keybinds
-const hrefToggle = (tglStr, contentTree = false) => {
-  var url = window.location.href;
+(function () {
+  "use strict";
 
-  if (url.toLowerCase().includes("properties") && url.indexOf(tglStr) == -1) {
-    var lastSlash = url.lastIndexOf("/");
-    window.location.href = url.substring(0, lastSlash + 1) + tglStr;
-    return;
-  }
+  let keybindsActive = true; //Toggle for enabling/disabling the keybinds
 
-  if (url.indexOf(tglStr) == -1) {
-    if (contentTree) {
-      var nodeId = document.activeElement.querySelector(".fancytree-active").id;
-      nodeId = nodeId.replace("node-svid", "").replace(/_/g, ".");
+  //Open/close the appropriate context menu using keybinds
+  const hrefToggle = (tglStr, contentTree = false) => {
+    var url = window.location.href;
+
+    if (url.toLowerCase().includes("properties") && url.indexOf(tglStr) == -1) {
+      var lastSlash = url.lastIndexOf("/");
+      window.location.href = url.substring(0, lastSlash + 1) + tglStr;
+      return;
     }
 
-    const newHref = window.location.href + (contentTree ? "/" + nodeId : "") + "/" + tglStr;
-    window.location.href = newHref;
-    return;
-  }
+    if (url.indexOf(tglStr) == -1) {
+      if (contentTree) {
+        var nodeId =
+          document.activeElement.querySelector(".fancytree-active").id;
+        nodeId = nodeId.replace("node-svid", "").replace(/_/g, ".");
+      }
 
-  window.location.href = url.replace("/" + tglStr, "");
-};
+      const newHref =
+        window.location.href + (contentTree ? "/" + nodeId : "") + "/" + tglStr;
+      window.location.href = newHref;
+      return;
+    }
 
-const showInfoText = (text) => {
-  var el = document.createElement("div");
-  el.style.position = "absolute";
-  el.style.left = window.scrollX + 10 + "px";
-  el.style.top = window.scrollY + 10 + "px";
-  el.style.zIndex = 9999;
-  el.style.backgroundColor = keybindsActive ? "green" : "red";
-  el.style.color = "white";
-  el.style.padding = "10px";
-  el.style.borderRadius = "5px";
-  el.style.fontWeight = "bold";
+    window.location.href = url.replace("/" + tglStr, "");
+  };
 
-  el.innerText = text;
-  document.body.appendChild(el);
+  const showInfoText = (text) => {
+    var el = document.createElement("div");
+    el.style.position = "absolute";
+    el.style.left = window.scrollX + 10 + "px";
+    el.style.top = window.scrollY + 10 + "px";
+    el.style.zIndex = 9999;
+    el.style.backgroundColor = keybindsActive ? "green" : "red";
+    el.style.color = "white";
+    el.style.padding = "10px";
+    el.style.borderRadius = "5px";
+    el.style.fontWeight = "bold";
 
-  setTimeout(() => {
-    document.body.removeChild(el);
-  }, 500);
-};
+    el.innerText = text;
+    document.body.appendChild(el);
 
-const isInput = () => {
-  var el = document.activeElement;
-  if (
-    el.tagName.toLowerCase() == "input" ||
-    el.tagName.toLowerCase() == "textarea"
-  ) {
-    return true;
-  }
-  return false;
-};
+    setTimeout(() => {
+      document.body.removeChild(el);
+    }, 500);
+  };
 
-const isInContentTree = () => {
-  var el = document.activeElement;
-  if (el.closest("#bottom")) {
-    return true;
-  }
-  return false;
-}
+  const isInput = () => {
+    var el = document.activeElement;
+    if (
+      el.tagName.toLowerCase() == "input" ||
+      el.tagName.toLowerCase() == "textarea"
+    ) {
+      return true;
+    }
+    return false;
+  };
 
-const handleKeybinds = (e) => {
-  if (isInput()) return; //Don't trigger keybinds if the user is typing in an input field
+  const isInContentTree = () => {
+    var el = document.activeElement;
+    if (el.closest("#bottom")) {
+      return true;
+    }
+    return false;
+  };
 
-  if (e.shiftKey && e.key === " ") {
-    keybindsActive = !keybindsActive;
-    showInfoText(keybindsActive ? "Keybinds enabled" : "Keybinds disabled");
-    return;
-  }
+  const handleKeybinds = (e) => {
+    if (isInput()) return; //Don't trigger keybinds if the user is typing in an input field
 
-  if (!keybindsActive) return;
+    if (e.shiftKey && e.key === " ") {
+      keybindsActive = !keybindsActive;
+      showInfoText(keybindsActive ? "Keybinds enabled" : "Keybinds disabled");
+      return;
+    }
 
-  if (e.key == "p") {
-    e.preventDefault();
-    hrefToggle("siteProperties");
-  } else if (e.key == "e") {
-    e.preventDefault();
-    hrefToggle("properties", isInContentTree());
-  }
-};
+    if (!keybindsActive) return;
 
-document.addEventListener("keydown", function (e) {
-  handleKeybinds(e);
-});
+    if (e.key == "p") {
+      e.preventDefault();
+      hrefToggle("siteProperties");
+    } else if (e.key == "e") {
+      e.preventDefault();
+      hrefToggle("properties", isInContentTree());
+    }
+  };
 
-document
-  .getElementById("content-frame")
-  .contentWindow.document.addEventListener("keydown", function (e) {
+  document.addEventListener("keydown", function (e) {
     handleKeybinds(e);
   });
+
+  document
+    .getElementById("content-frame")
+    .contentWindow.document.addEventListener("keydown", function (e) {
+      handleKeybinds(e);
+    });
+})();
